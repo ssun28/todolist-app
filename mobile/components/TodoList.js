@@ -14,8 +14,9 @@ class TodoList extends Component {
     constructor(props) {
         super(props);
         this.state = {
+          todoList: [],
           newTodo: '',
-          todoList: []
+          updateOneTodo: '',
         }
         this.getTodoList = this.getTodoList.bind(this);
     }
@@ -80,7 +81,7 @@ class TodoList extends Component {
         }),
       }).then(() => {
         this.getTodoList();
-        this.refs.myInput.blur();   // Unfocus a TextInput in React Native
+        this.refs.addTodoInput.blur();   // Unfocus a TextInput in React Native
       });
       this.setState({newTodo: ''});
 
@@ -88,7 +89,7 @@ class TodoList extends Component {
     }
 
     deleteTodo(id) {
-      console.log('deletetodo')
+      console.log('deleteTodo')
       fetch('http://127.0.0.1:8000/api/todos/'+id, {
         method: 'DELETE',
         headers: {
@@ -98,6 +99,24 @@ class TodoList extends Component {
       }).then(() => {
         this.getTodoList();
       });
+    }
+
+    updateTodo(id) {
+      console.log('updateTodo')
+      fetch('http://127.0.0.1:8000/api/todos/'+id, {
+        method: 'PUT',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          title: this.state.updateOneTodo,
+        }),
+      }).then(() => {
+        this.getTodoList();
+        //this.refs.updateTodoInput.blur(); 
+      });
+      this.setState({updateOneTodo: ''});
     }
 
     render() {
@@ -110,7 +129,7 @@ class TodoList extends Component {
               My TodoList
             </Text>
             <View style={styles.inputcontainer}>
-              <TextInput ref="myInput" style={styles.input} onChangeText={(text) => this.setState({newTodo: text})} value={this.state.newTodo} onSubmitEditing={Keyboard.dismiss} />
+              <TextInput ref="addTodoInput" style={styles.input} onChangeText={(text) => this.setState({newTodo: text})} value={this.state.newTodo}/>
               <TouchableHighlight style={styles.button} onPress={() => this.addTodo()} underlayColor='#dddddd'>
               <Text style={styles.btnText}>Add</Text>
               </TouchableHighlight>
@@ -119,11 +138,19 @@ class TodoList extends Component {
                 style= {{flex:1}}
                 data={this.state.todoList}
                 renderItem={({ item }) =>
+                <View>
                   <View style={styles.item}>
                     <Text> {item.title} {"\n"} Last Update:{item.updatedAt}</Text>
                     <TouchableHighlight style={styles.deletebutton} onPress={() => this.deleteTodo(item.id)} underlayColor='#dddddd'>
                     <Text style={styles.btnText}>X</Text>
                     </TouchableHighlight>
+                  </View>
+                  <View style={styles.updateinputcontainer}>
+                    <TextInput ref="updateTodoInput" style={styles.updateinput} onChangeText={(text) => this.setState({updateOneTodo: text})}/>
+                    <TouchableHighlight style={styles.updatebtn} onPress={() => this.updateTodo(item.id)} underlayColor='#dddddd'>
+                    <Text style={styles.btnText}>Update</Text>
+                    </TouchableHighlight>
+                  </View>
                   </View>
                 }
                 keyExtractor={item => item.id}
@@ -141,7 +168,7 @@ const styles = StyleSheet.create({
     },
     item: {
       backgroundColor: '#f9c2ff',
-      padding: 20,
+      padding: 10,
       marginVertical: 8,
       marginHorizontal: 16,
       flexDirection: 'row',
@@ -152,12 +179,17 @@ const styles = StyleSheet.create({
     titleView: {
       marginVertical: 18,
       marginHorizontal: 16,
-      padding: 40,
+      padding: 15,
       fontSize: 32,
     },
     inputcontainer: {
       marginTop: 5,
       padding: 10,
+      flexDirection: 'row'
+    },
+    updateinputcontainer: {
+      marginTop: -20,
+      padding: 20,
       flexDirection: 'row'
     },
     input: {
@@ -173,6 +205,26 @@ const styles = StyleSheet.create({
     },
     button: {
       height: 36,
+      flex: 2,
+      flexDirection: 'row',
+      backgroundColor: '#48afdb',
+      justifyContent: 'center',
+      color: '#FFFFFF',
+      borderRadius: 4,
+    },
+    updateinput: {
+      height: 30,
+      padding: 2,
+      marginRight: 5,
+      flex: 4,
+      fontSize: 14,
+      borderWidth: 1,
+      borderColor: '#48afdb',
+      borderRadius: 4,
+      color: '#48BBEC',
+    },
+    updatebtn: {
+      height: 30,
       flex: 2,
       flexDirection: 'row',
       backgroundColor: '#48afdb',
